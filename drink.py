@@ -3,19 +3,18 @@ class drinkMachine():
 		self.slots = []
 		self.sensors = []
 		for item in open('config/machine.config'):
-			if (item[:1] == '05'):
-				print 'slot made'
-				self.slots.append(item)
-			elif (item[:1] == '28'):
-				self.sensors.append(item)
+			if (item[:2] == '05'):
+				self.slots.append(slot(item))
+			elif (item[:2] == '28'):
+				self.sensors.append(sensor(item))
 			
 	def getAllStatus(self):
 		outstr = ''
 		for x in range(0, len(self.slots)):
-			status = 0
+			status = '0'
 			if (self.slots[x].getStatus()):
-				status = 1
-			outstr += (x + 1) + ' ' + 1
+				status = '1'
+			outstr += str((x + 1)) + ' ' + status
 			if (x != len(self.slots) - 1):
 				outstr += ' ` '
 		return outstr
@@ -23,7 +22,7 @@ class drinkMachine():
 class slot():
 	def __init__ (self, idNumber):
 		self.idNumber = idNumber
-		self.lock = false
+		self.lock = False
 
 	def getStatus(self):
 		try:
