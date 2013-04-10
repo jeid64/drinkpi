@@ -81,6 +81,7 @@ class PIClient(asyncore.dispatcher):
 		#builderString = "7 1 1 ` 2 1 ` 3 1 ` 4 1 ` 5 1 ` 6 1 \n"	
 		print builderString
 		return builderString
+
 	class noopThread(threading.Thread):
 		def __init__(self, piclient):
 			threading.Thread.__init__(self)

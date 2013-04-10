@@ -4,9 +4,9 @@ class drinkMachine():
 		self.sensors = []
 		for item in open('config/machine.config'):
 			if (item[:2] == '05'):
-				self.slots.append(slot(item))
+				self.slots.append(slot(item.rstrip()))
 			elif (item[:2] == '28'):
-				self.sensors.append(sensor(item))
+				self.sensors.append(sensor(item.rstrip()))
 			
 	def getAllStatus(self):
 		outstr = ''
@@ -26,9 +26,13 @@ class slot():
 
 	def getStatus(self):
 		try:
+			testFile = (''.join(['/sys/bus/w1/devices/',self.idNumber,'/name']))
+			print (testFile)
 			file = open(''.join(['/sys/bus/w1/devices/',self.idNumber,'/name']))
 			file.close()
-		except IOError:
+		except IOError as e:
+			print "I/O error({0}): {1}".format(e.errno, e.strerror)	
+			print 'fuck me senseless.'
 			return False
 		return True 
 	
