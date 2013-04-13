@@ -26,7 +26,10 @@ class drinkMachine():
 	
 	def getTemp(self):
 		if len(self.sensors) > 0:
-			return self.sensors[0].getTemp()
+			temp = self.sensors[0].getTemp()
+			if temp == 117:
+				temp = self.sensors[0].getTemp()
+			return temp
 		else:
 			return -1
 
@@ -83,6 +86,7 @@ class sensor():
 		except IOError:
 			return False
 		return True
+
 	def getTemp(self):
 		try:
 			tempFile = open(''.join(['/sys/bus/w1/devices/', self.idNumber, '/w1_slave']))
