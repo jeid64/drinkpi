@@ -28,9 +28,9 @@ class PIClient(asyncore.dispatcher):
 		self.connect((HOST, PORT))
 		self.send(OPCODE_SERVER_LOGIN + ' ' + PASSWD + '\n')
 		self.buffer = OPCODE_SERVER_LOGIN + ' ' + PASSWD + '\n'
-		#noopThread = self.noopThread(self)
-		#noopThread.start()
 		self.drinkmachine = drink.drinkMachine()
+		noopThread = self.noopThread(self)
+		noopThread.start()
 	def handle_connect(self):
 		pass
 
@@ -42,17 +42,30 @@ class PIClient(asyncore.dispatcher):
 			print 'ACK!'
 		elif OPCODE_TINI_LOGIN_NACK in receivedBuffer:
 			print 'NACK!'
-		elif '6' in receivedBuffer:
+		elif OPCODE_TINI_SLOT_STATUS  in receivedBuffer:
 			print 'Server wants slot info.'
 			self.buffer = self.giveSlotInfo()
 			self.handle_write()
 		elif OPCODE_TINI_DROP in receivedBuffer:
 			print 'Server wants to drop a drink.'
-			self.buffer = self.dropDrink()
+			slot = int(receivedBuffer[1:(len(receivedBuffer)-1)])
+			success = self.drinkmachine.dropDrink(slot)
+			if success == True:
+				print('DROP ACK!')
+				self.buffer = OPCODE_SERVER_DROP_ACK + '\n'
+				self.handle_write()
+				self.buffer = self.giveSlotInfo()
+				self.handle_write()
+			else:
+				print('DROP NACK!')
+				self.buffer = OPCODE_SERVER_DROP_NACK + '\n'
+				self.handle_write()
 		else:
 			print receivedBuffer
+
 	def handle_read(self):
 		buffer = self.recv(8192)
+		print(buffer)
 		self.commandSwitch(buffer)
         def writable(self):
 		return (len(self.buffer) > 0)
@@ -63,22 +76,16 @@ class PIClient(asyncore.dispatcher):
 		self.buffer = self.buffer[sent:]
 	
 	def noop(self):
-		return '9\n'
-
-	def dropDrink(self):
-		return '4\n'
+		#Use temp instead of noops because we have a sensor
+		temperature = self.drinkmachine.getTemp()
+		return (OPCODE_SERVER_TEMPERATURE + ' ' + str(temperature) + '\n')
+		#return '9\n'
 
 	def giveSlotInfo(self):
 		builderString = '7 '
 		statuses = self.drinkmachine.getAllStatus()
 		print statuses
 		builderString = ''.join([builderString, statuses, ' \n'])
-		'''
-			for i in range(1, numSlots):
-				builderString += " " + str(i) + " " + '1'
-			builderString += '\n'
-		'''
-		#builderString = "7 1 1 ` 2 1 ` 3 1 ` 4 1 ` 5 1 ` 6 1 \n"	
 		print builderString
 		return builderString
 	class noopThread(threading.Thread):
@@ -89,6 +96,6 @@ class PIClient(asyncore.dispatcher):
 			while(True):
 				self.piclient.buffer = self.piclient.noop()
 				self.piclient.handle_write()
-				time.sleep(5)
+				time.sleep(30)
 client = PIClient()
-asyncore.loop()
+asyncore.loop(120)
