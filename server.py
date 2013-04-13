@@ -97,6 +97,8 @@ class PIClient(asyncore.dispatcher):
 			while(True):
 				self.piclient.buffer = self.piclient.noop()
 				self.piclient.handle_write()
+				self.piclient.buffer = self.piclient.giveSlotInfo()
+				self.piclient.handle_write()
 				time.sleep(30)
 client = PIClient()
 asyncore.loop(120)
