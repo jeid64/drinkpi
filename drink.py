@@ -11,6 +11,8 @@ class drinkMachine():
 				self.sensors.append(sensor(item.rstrip()))
 			
 	def getAllStatus(self):
+		deviceProbe()
+		time.sleep(.2)
 		outstr = ''
 		for x in range(0, len(self.slots)):
 			status = '0'
@@ -22,6 +24,8 @@ class drinkMachine():
 		return outstr
 
 	def dropDrink(self, slotNumber):
+		deviceProbe()
+		time.sleep(.2)
 		return self.slots[slotNumber - 1].dropDrink()
 	
 	def getTemp(self):
@@ -32,6 +36,10 @@ class drinkMachine():
 			return temp
 		else:
 			return -1
+	
+	def deviceProbe(self):
+		subprocess.call(["modprobe", "-r", "w1-gpio"])
+		subprocess.call(["modprobe", "w1-gpio"])
 
 class slot():
 	def __init__ (self, idNumber):
