@@ -11,7 +11,7 @@ class drinkMachine():
 				self.sensors.append(sensor(item.rstrip()))
 			
 	def getAllStatus(self):
-		deviceProbe()
+		self.deviceProbe()
 		time.sleep(.2)
 		outstr = ''
 		for x in range(0, len(self.slots)):
