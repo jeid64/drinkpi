@@ -60,6 +60,8 @@ class PIClient(asyncore.dispatcher):
 				print('DROP NACK!')
 				self.buffer = OPCODE_SERVER_DROP_NACK + '\n'
 				self.handle_write()
+				self.buffer = self.giveSlotInfo()
+				self.handle_write()
 		else:
 			print receivedBuffer
 
