@@ -95,8 +95,13 @@ class PIClient(asyncore.dispatcher):
 		def __init__(self, piclient):
 			threading.Thread.__init__(self)
 			self.piclient = piclient
+			self.firstrun = True
 		def run(self):
 			while(True):
+				if (self.firstrun == True):
+					time.sleep(10)
+					self.firstrun = False
+				print ('noop')
 				self.piclient.buffer = self.piclient.noop()
 				self.piclient.handle_write()
 				self.piclient.buffer = self.piclient.giveSlotInfo()

@@ -8,7 +8,7 @@ class drinkMachine():
 		subprocess.call(["modprobe", "wire"])
 		subprocess.call(["modprobe", "w1-gpio"])
 		subprocess.call(["modprobe", "w1-therm"])
-		time.sleep(1)
+		time.sleep(2)
 		self.probelock = False
 		for item in open('config/machine.config'):
 			if (item[:2] == '05'):
@@ -20,7 +20,7 @@ class drinkMachine():
 		if not self.probelock:
 			self.probelock = True
 			self.deviceProbe()
-			time.sleep(.2)
+			time.sleep(2)
 			outstr = ''
 			for x in range(0, len(self.slots)):
 				status = '0'
@@ -39,7 +39,7 @@ class drinkMachine():
 		if not self.probelock:
 			self.probelock = True
 			self.deviceProbe()
-			time.sleep(.2)
+			time.sleep(2)
 			self.probelock = False
 			return self.slots[slotNumber - 1].dropDrink()
 		else:
@@ -65,6 +65,7 @@ class drinkMachine():
 	
 	def deviceProbe(self):
 		subprocess.call(["modprobe", "-r", "w1-gpio"])
+		time.sleep(1)
 		subprocess.call(["modprobe", "w1-gpio"])
 
 class slot():
