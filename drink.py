@@ -101,7 +101,7 @@ class slot():
 				print "Lock Status: Unlocked"
 				self.setLock()
 				try: 
-					commands = ['sh', 'dropn.sh', self.idNumber]
+					commands = ['sh', 'drop.sh', self.idNumber]
         				subprocess.call(commands)
 				except IOError:
 					print ('shit keeps breaking because it is shit.')

@@ -37,8 +37,9 @@ class PIClient(asyncore.dispatcher):
 	def handle_close(self):
 		self.close()
 	
-	def commandSwitch(self,receivedBuffer):	
-		if OPCODE_TINI_LOGIN_ACK in receivedBuffer:
+	def commandSwitch(self,receivedBuffer):
+		print (receivedBuffer)	
+		if OPCODE_TINI_LOGIN_ACK == receivedBuffer[0]:
 			print 'ACK!'
 		elif OPCODE_TINI_LOGIN_NACK in receivedBuffer:
 			print 'NACK!'
@@ -67,7 +68,6 @@ class PIClient(asyncore.dispatcher):
 
 	def handle_read(self):
 		buffer = self.recv(8192)
-		print(buffer)
 		self.commandSwitch(buffer)
         def writable(self):
 		return (len(self.buffer) > 0)
@@ -86,7 +86,6 @@ class PIClient(asyncore.dispatcher):
 	def giveSlotInfo(self):
 		builderString = '7 '
 		statuses = self.drinkmachine.getAllStatus()
-		print statuses
 		builderString = ''.join([builderString, statuses, ' \n'])
 		print builderString
 		return builderString
