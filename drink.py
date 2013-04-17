@@ -1,15 +1,14 @@
 import subprocess
 import time
+
+#subprocess.call("echo '1' > /mnt/w1/05.61FF0D000000/PIO", shell=True)
+#time.sleep(.5)
+#subprocess.call("echo '0' > /mnt/w1/05.61FF0D000000/PIO", shell=True)
+
 class drinkMachine():
 	def __init__ (self):
 		self.slots = []
 		self.sensors = []
-		self.probelock = True
-		subprocess.call(["modprobe", "wire"])
-		subprocess.call(["modprobe", "w1-gpio"])
-		subprocess.call(["modprobe", "w1-therm"])
-		time.sleep(2)
-		self.probelock = False
 		for item in open('config/machine.config'):
 			if (item[:2] == '05'):
 				self.slots.append(slot(item.rstrip()))
@@ -17,10 +16,6 @@ class drinkMachine():
 				self.sensors.append(sensor(item.rstrip()))
 			
 	def getAllStatus(self):
-		if not self.probelock:
-			self.probelock = True
-			self.deviceProbe()
-			time.sleep(2)
 			outstr = ''
 			for x in range(0, len(self.slots)):
 				status = '0'
@@ -29,45 +24,19 @@ class drinkMachine():
 				outstr += str((x + 1)) + ' ' + status
 				if (x != len(self.slots) - 1):
 					outstr += ' ` '
-			self.probelock = False
 			return outstr
-		else:
-			time.sleep(1)
-			return self.getAllStatus()
 
 	def dropDrink(self, slotNumber):
-		if not self.probelock:
-			self.probelock = True
-			self.deviceProbe()
-			time.sleep(2)
-			self.probelock = False
-			return self.slots[slotNumber - 1].dropDrink()
-		else:
-			time.sleep(1)
-			return self.dropDrink(slotNumber)
+		return self.slots[slotNumber - 1].dropDrink()
 	
 	def getTemp(self):
-		if not self.probelock:
-			self.probelock = True
-			if len(self.sensors) > 0:
-				temp = self.sensors[0].getTemp()
-				if temp == 117:
-					temp = self.sensors[0].getTemp()
-				self.probelock = False
-				return temp
-			else:
-				self.probelock = False
-				return -1
+		if len(self.sensors) > 0:
+			#print self.sensors[0]
+			return self.sensors[0].getTemp()
 		else:
-			time.sleep(1)
-			return self.getTemp()
+			return -1
 
 	
-	def deviceProbe(self):
-		subprocess.call(["modprobe", "-r", "w1-gpio"])
-		time.sleep(1)
-		subprocess.call(["modprobe", "w1-gpio"])
-
 class slot():
 	def __init__ (self, idNumber):
 		self.idNumber = idNumber
@@ -75,12 +44,11 @@ class slot():
 
 	def getStatus(self):
 		try:
-			file = open(''.join(['/sys/bus/w1/devices/',self.idNumber,'/name']))
+			file = open(''.join(['/mnt/w1/',self.idNumber,'/id']))
 			print "Slot: " + self.idNumber + " active."
 			file.close()
 		except IOError as e:
 			#print "I/O error({0}): {1}".format(e.errno, e.strerror)	
-			#print 'fuck me senseless.'
 			print "Slot: " + self.idNumber + " disabled."
 			return False
 		return True 
@@ -101,11 +69,12 @@ class slot():
 				print "Lock Status: Unlocked"
 				self.setLock()
 				try: 
-					commands = ['sh', 'drop.sh', self.idNumber]
-        				subprocess.call(commands)
+					subprocess.call("".join(["echo '1' > /mnt/w1/", self.idNumber,"/PIO"]), shell=True)
+					time.sleep(.5)
+					subprocess.call("".join(["echo '0' > /mnt/w1/", self.idNumber,"/PIO"]), shell=True)
 				except IOError:
 					print ('shit keeps breaking because it is shit.')
-				time.sleep(3)
+				time.sleep(2)
 				self.setUnlock()
 				return True
 		return False
@@ -116,7 +85,7 @@ class sensor():
 	
 	def getStatus(self):
 		try:
-			file = open(''.join(['/sys/bus/w1/devices/', self.idNumber, '/name']))
+			file = open(''.join(['/mnt/w1/', self.idNumber, '/id']))
 			file.close()
 		except IOError:
 			return False
@@ -124,12 +93,15 @@ class sensor():
 
 	def getTemp(self):
 		try:
-			tempFile = open(''.join(['/sys/bus/w1/devices/', self.idNumber, '/w1_slave']))
-			text = tempFile.read();
+			tempFile = open(''.join(['/mnt/w1/', self.idNumber, '/fasttemp']))
+			text = tempFile.read()
 			tempFile.close()
-			temperature = (float(text.split('\n')[1].split(' ')[9][2:]) / 1000) * (9/5) + 32
+			temperature = text.strip()
+			#print temperature
+			#temperature = (float(text.split('\n')[1].split(' ')[9][2:]) / 1000) * (9/5) + 32
 		except IOError:
 			return -1
+		#print temperature
 		return temperature
 
 if __name__ == '__main__':
