@@ -29,6 +29,7 @@ class PIClient(asyncore.dispatcher):
 		self.send(OPCODE_SERVER_LOGIN + ' ' + PASSWD + '\n')
 		self.buffer = OPCODE_SERVER_LOGIN + ' ' + PASSWD + '\n'
 		self.drinkmachine = drink.drinkMachine()
+		self.bufferLock = False
 		noopThread = self.noopThread(self)
 		noopThread.start()
 	def handle_connect(self):
@@ -49,20 +50,23 @@ class PIClient(asyncore.dispatcher):
 			self.handle_write()
 		elif OPCODE_TINI_DROP in receivedBuffer:
 			print 'Server wants to drop a drink.'
+			self.bufferLock = True
 			slot = int(receivedBuffer[1:(len(receivedBuffer)-1)])
 			success = self.drinkmachine.dropDrink(slot)
 			if success == True:
 				print('DROP ACK!')
 				self.buffer = OPCODE_SERVER_DROP_ACK + '\n'
 				self.handle_write()
-				self.buffer = self.giveSlotInfo()
-				self.handle_write()
+				self.bufferLock = False
+				#self.buffer = self.giveSlotInfo()
+				#self.handle_write()
 			else:
 				print('DROP NACK!')
 				self.buffer = OPCODE_SERVER_DROP_NACK + '\n'
 				self.handle_write()
-				self.buffer = self.giveSlotInfo()
-				self.handle_write()
+				#self.buffer = self.giveSlotInfo()
+				#self.handle_write()
+				self.bufferLock = False
 		else:
 			print receivedBuffer
 
@@ -101,10 +105,12 @@ class PIClient(asyncore.dispatcher):
 					time.sleep(10)
 					self.firstrun = False
 				print ('noop')
-				self.piclient.buffer = self.piclient.noop()
-				self.piclient.handle_write()
-				self.piclient.buffer = self.piclient.giveSlotInfo()
-				self.piclient.handle_write()
+				if self.bufferLock == False:
+					self.piclient.buffer = self.piclient.noop()
+					self.piclient.handle_write()
+					self.piclient.buffer = self.piclient.giveSlotInfo()
+					self.piclient.handle_write()
 				time.sleep(30)
+
 client = PIClient()
 asyncore.loop(120)
