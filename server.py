@@ -42,13 +42,13 @@ class PIClient(asyncore.dispatcher):
 		print (receivedBuffer)	
 		if OPCODE_TINI_LOGIN_ACK == receivedBuffer[0]:
 			print 'ACK!'
-		elif OPCODE_TINI_LOGIN_NACK in receivedBuffer:
+		elif OPCODE_TINI_LOGIN_NACK in receivedBuffer[0]:
 			print 'NACK!'
-		elif OPCODE_TINI_SLOT_STATUS  in receivedBuffer:
+		elif OPCODE_TINI_SLOT_STATUS  in receivedBuffer[0]:
 			print 'Server wants slot info.'
 			self.buffer = self.giveSlotInfo()
 			self.handle_write()
-		elif OPCODE_TINI_DROP in receivedBuffer:
+		elif OPCODE_TINI_DROP in receivedBuffer[0]:
 			print 'Server wants to drop a drink.'
 			self.bufferLock = True
 			slot = int(receivedBuffer[1:(len(receivedBuffer)-1)])
